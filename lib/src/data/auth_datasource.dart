@@ -35,10 +35,6 @@ class AuthDatasource {
       });
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', result.data["data"]["token"]);
-      print(result.data["data"]["token"]);
-      print("================================");
-      String? token = prefs.getString("token");
-      print(token);
       return right(result.data["message"].toString());
     } catch (e) {
       return left(e.toString());

@@ -135,11 +135,55 @@ class _HomePageState extends State<HomePage> {
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20.0, vertical: 15),
-                                    child: Text(
-                                      item.name ?? '',
-                                      style: blackMediumTextStyle.copyWith(
-                                        fontSize: 16,
-                                      ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          item.name ?? '',
+                                          style: blackMediumTextStyle.copyWith(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () async {
+                                            var result =
+                                                await _checklistDatasource
+                                                    .deleteChecklist(
+                                                        checklistId:
+                                                            item.id ?? 0);
+
+                                            result.fold(
+                                              (l) {
+                                                setState(() {
+                                                  setState(() {
+                                                    AnimatedSnackBar.material(l,
+                                                            type:
+                                                                AnimatedSnackBarType
+                                                                    .warning)
+                                                        .show(context);
+                                                  });
+                                                });
+                                              },
+                                              (r) {
+                                                setState(() {
+                                                  setState(() {
+                                                    AnimatedSnackBar.material(r,
+                                                            type:
+                                                                AnimatedSnackBarType
+                                                                    .warning)
+                                                        .show(context);
+                                                  });
+                                                });
+                                              },
+                                            );
+                                          },
+                                          child: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
