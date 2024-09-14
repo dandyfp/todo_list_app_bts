@@ -60,6 +60,31 @@ class ChecklistDatasource {
     }
   }
 
+  Future<Either<String, String>> renameItemChecklist({
+    required int checklistId,
+    required int itemCheckListId,
+    required String name,
+  }) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString("token");
+
+      var result = await _dio.put(
+        "${baseUrl}checklist/$checklistId/item/rename/$itemCheckListId",
+        data: {"itemName": name},
+        options: Options(
+          headers: {
+            'authorization': 'Bearer $token',
+            'accept': 'application/json',
+          },
+        ),
+      );
+      return right(result.data["message"]);
+    } catch (e) {
+      return left(e.toString());
+    }
+  }
+
   Future<Either<String, String>> deleteItemChecklist({
     required int checklistId,
     required int itemCheckListId,

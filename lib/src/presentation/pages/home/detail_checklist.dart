@@ -2,6 +2,7 @@ import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_app_bts/src/data/checklist_datasource.dart';
 import 'package:todo_list_app_bts/src/models/checklist_model.dart';
+import 'package:todo_list_app_bts/src/models/item_checklist_model.dart';
 import 'package:todo_list_app_bts/src/presentation/misc/constant.dart';
 import 'package:todo_list_app_bts/src/presentation/misc/methods.dart';
 import 'package:todo_list_app_bts/src/presentation/misc/style.dart';
@@ -126,7 +127,16 @@ class _DetailCheckListState extends State<DetailCheckList> {
                                         Row(
                                           children: [
                                             InkWell(
-                                              onTap: () {},
+                                              onTap: () {
+                                                bottomSheetAddTask(
+                                                  context: context,
+                                                  id: widget.data.id ?? 0,
+                                                  isEdit: true,
+                                                  data: item,
+                                                );
+                                                nameController.text =
+                                                    item.name ?? '';
+                                              },
                                               child: const Icon(
                                                 Icons.edit,
                                                 color: Colors.black,
@@ -149,7 +159,7 @@ class _DetailCheckListState extends State<DetailCheckList> {
                                                     setState(() {
                                                       setState(() {
                                                         AnimatedSnackBar.material(
-                                                                'Success delete',
+                                                                l,
                                                                 type:
                                                                     AnimatedSnackBarType
                                                                         .warning)
@@ -198,6 +208,8 @@ class _DetailCheckListState extends State<DetailCheckList> {
   Future<dynamic> bottomSheetAddTask({
     required BuildContext context,
     required int id,
+    ItemChecklistModel? data,
+    bool? isEdit,
   }) {
     return showModalBottomSheet(
       enableDrag: true,
@@ -241,28 +253,58 @@ class _DetailCheckListState extends State<DetailCheckList> {
                 verticalSpace(40),
                 Button(
                   onPressed: () async {
-                    if (nameController.text.isNotEmpty) {
-                      var result =
-                          await _checklistDatasource.createItemChecklist(
-                        name: nameController.text,
-                        checklistId: id,
-                      );
-                      result.fold(
-                        (l) {},
-                        (r) async {
-                          Navigator.pop(context);
-                          // await _taskDatasource.getTasks(uid ?? '');
-                          setState(() {
-                            nameController.clear();
-                          });
-                        },
-                      );
+                    if (isEdit == true) {
+                      if (nameController.text.isNotEmpty) {
+                        var result =
+                            await _checklistDatasource.renameItemChecklist(
+                          name: nameController.text,
+                          checklistId: id,
+                          itemCheckListId: data?.id ?? 0,
+                        );
+                        result.fold(
+                          (l) {},
+                          (r) async {
+                            _checklistDatasource.getAllItemCheckList(id);
+                            Navigator.pop(context);
+                            // await _taskDatasource.getTasks(uid ?? '');
+                            setState(() {
+                              nameController.clear();
+                            });
+                          },
+                        );
+                      } else {
+                        setState(() {
+                          AnimatedSnackBar.material(
+                                  'Name column cannot be empty',
+                                  type: AnimatedSnackBarType.warning)
+                              .show(context);
+                        });
+                      }
                     } else {
-                      setState(() {
-                        AnimatedSnackBar.material('Name column cannot be empty',
-                                type: AnimatedSnackBarType.warning)
-                            .show(context);
-                      });
+                      if (nameController.text.isNotEmpty) {
+                        var result =
+                            await _checklistDatasource.createItemChecklist(
+                          name: nameController.text,
+                          checklistId: id,
+                        );
+                        result.fold(
+                          (l) {},
+                          (r) async {
+                            Navigator.pop(context);
+                            // await _taskDatasource.getTasks(uid ?? '');
+                            setState(() {
+                              nameController.clear();
+                            });
+                          },
+                        );
+                      } else {
+                        setState(() {
+                          AnimatedSnackBar.material(
+                                  'Name column cannot be empty',
+                                  type: AnimatedSnackBarType.warning)
+                              .show(context);
+                        });
+                      }
                     }
                   },
                   child: Center(
