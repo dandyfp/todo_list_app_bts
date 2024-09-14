@@ -1,5 +1,6 @@
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list_app_bts/src/data/auth_datasource.dart';
 
 import 'package:todo_list_app_bts/src/presentation/misc/constant.dart';
@@ -27,6 +28,31 @@ TextEditingController passwordController = TextEditingController();
 
 class _LoginPageState extends State<LoginPage> {
   final AuthDatasource _authDataSource = AuthDatasource();
+
+  @override
+  void initState() {
+    Future.delayed(const Duration(seconds: 1), () {
+      checkUser();
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  Future<void> checkUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
+    if (token != null) {
+      setState(() {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(),
+          ),
+        );
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

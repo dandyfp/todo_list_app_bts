@@ -1,10 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthDatasource {
   final Dio _dio = Dio();
 
-  final String basUrl = "http://94.74.86.174:8080/api/";
+  final String baseUrl = "http://94.74.86.174:8080/api/";
 
   Future<Either<String, String>> register({
     required String username,
@@ -12,7 +13,7 @@ class AuthDatasource {
     required String password,
   }) async {
     try {
-      var result = await _dio.post("${basUrl}register", data: {
+      var result = await _dio.post("${baseUrl}register", data: {
         "username": username,
         "email": email,
         "password": password,
@@ -28,10 +29,16 @@ class AuthDatasource {
     required String password,
   }) async {
     try {
-      var result = await _dio.post("${basUrl}login", data: {
+      var result = await _dio.post("${baseUrl}login", data: {
         "username": username,
         "password": password,
       });
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', result.data["data"]["token"]);
+      print(result.data["data"]["token"]);
+      print("================================");
+      String? token = prefs.getString("token");
+      print(token);
       return right(result.data["message"].toString());
     } catch (e) {
       return left(e.toString());

@@ -1,106 +1,66 @@
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list_app_bts/src/data/checklist_datasource.dart';
+import 'package:todo_list_app_bts/src/models/checklist_model.dart';
 import 'package:todo_list_app_bts/src/presentation/misc/constant.dart';
 import 'package:todo_list_app_bts/src/presentation/misc/methods.dart';
-import 'package:todo_list_app_bts/src/presentation/misc/navigator_helper.dart';
 import 'package:todo_list_app_bts/src/presentation/misc/style.dart';
-import 'package:todo_list_app_bts/src/presentation/pages/auth/login_page.dart';
-import 'package:todo_list_app_bts/src/presentation/pages/home/detail_checklist.dart';
 import 'package:todo_list_app_bts/src/presentation/widgets/button.dart';
 import 'package:todo_list_app_bts/src/presentation/widgets/fab.dart';
 import 'package:todo_list_app_bts/src/presentation/widgets/textfield.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class DetailCheckList extends StatefulWidget {
+  final ChecklistModel data;
+  const DetailCheckList({super.key, required this.data});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<DetailCheckList> createState() => _DetailCheckListState();
 }
+
+ChecklistDatasource _checklistDatasource = ChecklistDatasource();
 
 TextEditingController nameController = TextEditingController();
 
 GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-ChecklistDatasource _checklistDatasource = ChecklistDatasource();
+class _DetailCheckListState extends State<DetailCheckList> {
+  @override
+  void initState() {
+    _checklistDatasource.getAllItemCheckList(widget.data.id ?? 0);
+    super.initState();
+  }
 
-String? uid;
-
-class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ghostWhite,
       floatingActionButton: FAB(
         onTap: () {
-          bottomSheetAddTask(context);
+          bottomSheetAddTask(
+            context: context,
+            id: widget.data.id ?? 0,
+          );
         },
+      ),
+      backgroundColor: ghostWhite,
+      appBar: AppBar(
+        backgroundColor: saffron,
+        centerTitle: true,
+        automaticallyImplyLeading: true,
+        title: Text(
+          widget.data.name ?? '',
+          style: whiteSemiBoldTextStyle.copyWith(fontSize: 16),
+        ),
       ),
       body: ListView(
         children: [
-          verticalSpace(20),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-            decoration: BoxDecoration(
-              color: saffron.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: saffron.withOpacity(0.8),
-                  blurRadius: 4,
-                  offset: const Offset(2, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'TO-DO List',
-                  style: whiteSemiBoldTextStyle.copyWith(fontSize: 20),
-                ),
-                Text(
-                  getGreeting(),
-                  style: whiteMediumTextStyle.copyWith(fontSize: 16),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      height: 2,
-                      color: ghostWhite,
-                    ),
-                  ],
-                ),
-                InkWell(
-                  onTap: () async {
-                    SharedPreferences prefs =
-                        await SharedPreferences.getInstance();
-                    prefs.clear();
-                    setState(() {
-                      NavigatorHelper.pushAndRemoveUntil(
-                        context,
-                        const LoginPage(),
-                        (route) => false,
-                      );
-                    });
-                  },
-                  child: Text(
-                    'Logout',
-                    style: whiteMediumTextStyle.copyWith(fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          verticalSpace(40),
+          verticalSpace(50),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
                 FutureBuilder(
-                  future: _checklistDatasource.getAllCheckList(),
+                  future: _checklistDatasource
+                      .getAllItemCheckList(widget.data.id ?? 0),
                   builder: (context, snapshot) {
                     return snapshot.data == null
                         ? Center(
@@ -124,22 +84,43 @@ class _HomePageState extends State<HomePage> {
                             itemBuilder: (context, index) {
                               var item = snapshot.data![index];
                               return InkWell(
-                                onTap: () {
-                                  NavigatorHelper.push(
-                                    context,
-                                    DetailCheckList(data: item),
-                                  );
-                                },
+                                onTap: () {},
                                 child: Card(
                                   color: whiteColor,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20.0, vertical: 15),
-                                    child: Text(
-                                      item.name ?? '',
-                                      style: blackMediumTextStyle.copyWith(
-                                        fontSize: 16,
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Checkbox.adaptive(
+                                          value: item.itemCompletionStatus,
+                                          onChanged: (value) async {
+                                            setState(() {});
+                                            var result =
+                                                await _checklistDatasource
+                                                    .updateStatusItemChecklist(
+                                              checklistId: widget.data.id ?? 0,
+                                              itemCheckListId: item.id ?? 0,
+                                            );
+                                            result.fold(
+                                              (l) {},
+                                              (r) {
+                                                _checklistDatasource
+                                                    .getAllItemCheckList(
+                                                        widget.data.id ?? 0);
+                                              },
+                                            );
+                                            setState(() {});
+                                          },
+                                        ),
+                                        horizontalSpace(10),
+                                        Text(
+                                          item.name ?? '',
+                                          style: blackMediumTextStyle.copyWith(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -156,7 +137,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<dynamic> bottomSheetAddTask(BuildContext context) {
+  Future<dynamic> bottomSheetAddTask({
+    required BuildContext context,
+    required int id,
+  }) {
     return showModalBottomSheet(
       enableDrag: true,
       isDismissible: true,
@@ -200,8 +184,11 @@ class _HomePageState extends State<HomePage> {
                 Button(
                   onPressed: () async {
                     if (nameController.text.isNotEmpty) {
-                      var result = await _checklistDatasource
-                          .createChecklist(nameController.text);
+                      var result =
+                          await _checklistDatasource.createItemChecklist(
+                        name: nameController.text,
+                        checklistId: id,
+                      );
                       result.fold(
                         (l) {},
                         (r) async {
@@ -234,21 +221,5 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-  }
-
-  String getGreeting() {
-    final hour = DateTime.now().hour;
-
-    if (hour >= 5 && hour < 11) {
-      return "Good Morning";
-    } else if (hour >= 11 && hour < 15) {
-      return "Good Afternoon";
-    } else if (hour >= 15 && hour < 18) {
-      return "Good Afternoon";
-    } else if (hour >= 18 && hour < 24) {
-      return "Good Evening";
-    } else {
-      return "Good Night";
-    }
   }
 }
