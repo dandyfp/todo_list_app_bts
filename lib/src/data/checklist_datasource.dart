@@ -60,6 +60,29 @@ class ChecklistDatasource {
     }
   }
 
+  Future<Either<String, String>> deleteItemChecklist({
+    required int checklistId,
+    required int itemCheckListId,
+  }) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString("token");
+
+      var result = await _dio.delete(
+        "${baseUrl}checklist/$checklistId/item/$itemCheckListId",
+        options: Options(
+          headers: {
+            'authorization': 'Bearer $token',
+            'accept': 'application/json',
+          },
+        ),
+      );
+      return right(result.data["message"]);
+    } catch (e) {
+      return left(e.toString());
+    }
+  }
+
   Future<Either<String, String>> createItemChecklist({
     required String name,
     required int checklistId,

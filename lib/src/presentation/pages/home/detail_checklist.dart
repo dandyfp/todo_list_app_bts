@@ -114,11 +114,69 @@ class _DetailCheckListState extends State<DetailCheckList> {
                                           },
                                         ),
                                         horizontalSpace(10),
-                                        Text(
-                                          item.name ?? '',
-                                          style: blackMediumTextStyle.copyWith(
-                                            fontSize: 16,
+                                        Expanded(
+                                          child: Text(
+                                            item.name ?? '',
+                                            style:
+                                                blackMediumTextStyle.copyWith(
+                                              fontSize: 16,
+                                            ),
                                           ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            InkWell(
+                                              onTap: () {},
+                                              child: const Icon(
+                                                Icons.edit,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            horizontalSpace(5),
+                                            InkWell(
+                                              onTap: () async {
+                                                var result =
+                                                    await _checklistDatasource
+                                                        .deleteItemChecklist(
+                                                            checklistId: widget
+                                                                    .data.id ??
+                                                                0,
+                                                            itemCheckListId:
+                                                                item.id ?? 0);
+
+                                                result.fold(
+                                                  (l) {
+                                                    setState(() {
+                                                      setState(() {
+                                                        AnimatedSnackBar.material(
+                                                                'Success delete',
+                                                                type:
+                                                                    AnimatedSnackBarType
+                                                                        .warning)
+                                                            .show(context);
+                                                      });
+                                                    });
+                                                  },
+                                                  (r) {
+                                                    setState(() {
+                                                      setState(() {
+                                                        AnimatedSnackBar.material(
+                                                                r,
+                                                                type:
+                                                                    AnimatedSnackBarType
+                                                                        .warning)
+                                                            .show(context);
+                                                      });
+                                                    });
+                                                  },
+                                                );
+                                              },
+                                              child: const Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
